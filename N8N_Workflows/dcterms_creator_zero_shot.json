@@ -1,0 +1,223 @@
+{
+  "name": "DACT-Author 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "6edf0c7c-fb14-4cbf-8f6d-b09d96e42edf",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        660,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/masterarbeit/Test files/DCAT-authors/zero/*",
+        "options": {}
+      },
+      "id": "dc8ad40c-e491-455a-b3ca-97340d1d0c63",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        840,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "id": "a3fa09c4-87b7-42bb-89e1-0aab77270762",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "05250293-e598-42a3-8a07-bd274c27a200",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1320,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": ""
+        }
+      },
+      "id": "487f261b-4f25-45a4-b3f0-3d498d41cb8d",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2080,
+        500
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PSQIceMLQtFmxoY0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "accounts/fireworks/models/llama-v3p2-3b-instruct",
+        "options": {
+          "baseURL": "https://api.fireworks.ai/inference/v1",
+          "temperature": 0
+        }
+      },
+      "id": "663b79e6-b88e-47ba-95e0-47144ff5add9",
+      "name": "FireworkAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        500
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vAX0NXxxK41wpEUV",
+          "name": "FireworkAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Identify and extract the authors listed in the document below. Return the authors in this exact format: ['FirstName1 LastName1', 'FirstName2 LastName2', 'FirstName3 LastName3'], ensuring each name is separated by commas and enclosed in single quotes.\n\n\nDocument to analyze: {{ $json.OCR }}.\n\nRespond only with the list of names enclosed in brackets []!",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in author identification and extraction from documents"
+            }
+          ]
+        }
+      },
+      "id": "05035d4b-4cb2-4494-b7fb-c5eda308f276",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        1560,
+        320
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireworkAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e7013c4d-5fcd-4f2f-a86a-1c9e89451012",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "k30Q6kCaAVx0sSS7",
+  "tags": []
+}

@@ -1,0 +1,224 @@
+{
+  "name": "Keywords zero shot 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "0c896a71-b3e6-4775-ade4-562dbf077076",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        480,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/masterarbeit/Test files/Keywords/SemEval2017/*",
+        "options": {}
+      },
+      "id": "8c2b6691-5a54-41fd-a9b0-4bbe417f56cb",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        700,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "6505b15a-4234-4ad9-ad4a-65a6fa2424aa",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1080,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "id": "ed4fc3b9-0dec-4a6e-ac16-6b9861e9084b",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        880,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": ""
+        }
+      },
+      "id": "56cbe3b2-ebc4-4808-8e2b-cadded067833",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        1940,
+        420
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PSQIceMLQtFmxoY0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "accounts/fireworks/models/llama-v3p1-70b-instruct",
+        "options": {
+          "baseURL": "https://api.fireworks.ai/inference/v1",
+          "frequencyPenalty": 0.5,
+          "temperature": 0
+        }
+      },
+      "id": "214d53d5-31a5-49e7-a2f4-61877c43ea50",
+      "name": "FireworkAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1580,
+        320
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vAX0NXxxK41wpEUV",
+          "name": "FireworkAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Below is a document. Extract the most relevant and succinct keywords and keyphrases that accurately summarize the content. Focus on identifying key concepts, technical terms, named entities, and significant details. Ensure that each keyword or keyphrase adds meaningful value and is directly related to the core topics of the document. Avoid any repetitions or redundant phrases, and limit the output to a maximum of 20 distinct keywords or keyphrases.\n\nEnsure the output contains only the extracted keyphrases, formatted as a Python list (i.e., enclosed in square brackets, with each keyphrase in single quotes, separated by commas), without any numbering or additional text.\n\nDocument:\n{{ $json.document_text }}\n\nOutput format:\n['keyphrase1', 'keyphrase2']",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in extracting keywords and keyphrases from documents."
+            }
+          ]
+        }
+      },
+      "id": "418923f9-9374-4bf9-8573-74fcd8a873fa",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        1520,
+        100
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireworkAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "78b33dee-578a-4565-9a89-0f58131b3696",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "5xpXcuDdReoutoaP",
+  "tags": []
+}

@@ -1,0 +1,265 @@
+{
+  "name": "DACT-Author few-shot gpt4o",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "545b8f30-3b85-444a-a962-b495f504e3bc",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        660,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/masterarbeit/Test files/DCAT-authors/*",
+        "options": {}
+      },
+      "id": "0d19ca8a-4d90-4760-a540-f2d132609c40",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        840,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "id": "817dcfa6-cd38-4b84-92eb-438dcad7dd72",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "64c70579-a219-4f2f-a10b-2498c7ac373e",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1260,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1GYzYOMJHiT1Xm7UE_OQsLgQZDNdtRkrL-JqKYxlzZTk",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 532449605,
+          "mode": "list",
+          "cachedResultName": "llama 3.2 8b few",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GYzYOMJHiT1Xm7UE_OQsLgQZDNdtRkrL-JqKYxlzZTk/edit#gid=532449605"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "LLM": "={{ $json.text }}",
+            "Human": "={{ $('Loop Over Items').item.json.authors }}",
+            "ID ": "={{ $('Loop Over Items').item.json.entry_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID ",
+              "displayName": "ID ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Human",
+              "displayName": "Human",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LLM",
+              "displayName": "LLM",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "87911739-85d1-485c-8600-e3b450ed4c00",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2100,
+        520
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PSQIceMLQtFmxoY0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "accounts/fireworks/models/llama-v3p2-3b-instruct",
+        "options": {
+          "baseURL": "https://api.fireworks.ai/inference/v1",
+          "maxTokens": 600,
+          "temperature": 0
+        }
+      },
+      "id": "3715477e-f736-4f95-8c20-49f30025ccec",
+      "name": "FireworkAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        480
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vAX0NXxxK41wpEUV",
+          "name": "FireworkAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Identify and extract the authors listed in the document below. Return the authors in this exact format: ['FirstName1 LastName1', 'FirstName2 LastName2', 'FirstName3 LastName3'], ensuring each name is separated by commas and enclosed in single quotes.\n\nUse these examples as a guide:\n\nExample 1:\n\"Prof. Emily Johnson¹, Dr. Michael Huang², Dr. Natalie Chen³\n¹Princeton University\n²University of California, Berkeley\n³University of Sydney\nAbstract: We investigate the Fourier dimension of sets of well-approximable numbers and construct measures that achieve nearly optimal decay rates for their Fourier transforms. Our work extends previous results by introducing a logarithmic improvement over Kaufman’s measure construction. This advancement offers new insights into the relationship between harmonic analysis and Diophantine approximation, with applications to understanding the structure of fractal sets in number theory.\"\n\nResponse: ['Emily Johnson', 'Michael Huang', 'Natalie Chen']\n\nExample 2:\n\"Dr. Robert Smith¹, Prof. Robert Smith²\n¹Harvard University\n²University of Cambridge\nAbstract: This paper explores the Fourier decay properties of measures supported on Cantor sets with fractional dimensions. We construct a measure whose Fourier transform demonstrates decay at a rate surpassing that of classical estimates, providing a refinement of the existing results by Kaufman. Our approach utilizes a modified version of Frostman’s lemma to establish a nearly optimal decay rate, contributing to the understanding of harmonic analysis on fractal structures.\"\n\nResponse: ['Robert Smith', 'Robert Smith']\n\nDocument to analyze: {{ $json.OCR }}.\n\nRespond only with the list of names enclosed in brackets []!",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in author identification and extraction from documents"
+            }
+          ]
+        }
+      },
+      "id": "17820288-0137-4ebd-9162-a684b3062e4c",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        1560,
+        320
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireworkAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fe17e56b-0305-4c7e-a2b0-e897caf544a1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "uqgLmUwknX0znBPi",
+  "tags": []
+}

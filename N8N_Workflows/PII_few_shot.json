@@ -1,0 +1,223 @@
+{
+  "name": "PII few shot 1",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "3505b0a3-6a0c-48cd-993e-bba0068d2923",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        480,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/masterarbeit/Test files/PII/3b/*",
+        "options": {}
+      },
+      "id": "799a6698-1cf0-4c45-a832-5199518b90d0",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        700,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "5d231ca7-c2d3-4188-aa9e-10cb441923b6",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1180,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "id": "9bed68bf-6a07-4b09-b424-5ed6a06c20b5",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        960,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": ""
+        }
+      },
+      "id": "94b361e6-2b7c-40bd-a770-e51c101c9b59",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2300,
+        340
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZX29YTH2kiu0Yn0D",
+          "name": "Google Sheets account l97.."
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "accounts/fireworks/models/llama-v3p1-70b-instruct",
+        "options": {
+          "baseURL": "https://api.fireworks.ai/inference/v1",
+          "temperature": 0
+        }
+      },
+      "id": "f93ae6ff-f564-4dfc-be24-e8aaacad9853",
+      "name": "FireworkAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        380
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vAX0NXxxK41wpEUV",
+          "name": "FireworkAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task: \"Analyze the following document and identify any instances of Personally Identifiable Information (PII) present, focusing specifically on the categories 'credit_card', 'phone_number', 'email', and 'iban'.\n\nExamples for guidance:\nExample 1:\n\nInput: \"Hello, I'm Mr. John Smith, the vendor manager. Could you please update the contact information in our Carter, Lee, and Associates vendor account with my phone number 123-456 7890 and email address manager@example.com?\"\nOutput: ['phone_number', 'email']\n\nExample 2:\n\nInput: \"Team briefings will be held in building 56234, Suite 410. We will review the budget allocations from account number FR7630004000031234567890143 and address transaction tracking for card number 5530912083476521.\"\nOutput: ['credit_card', 'iban']\n\nExample 3:\n\nInput: \"Dear Mark, we've observed limited activity from your IP address 28fc:b12e:3a4d:e920:ad8b:cc9a:b234\n. If you’re experiencing connectivity problems, kindly let us know as soon as possible.\"\nOutput: []\n\nDocument to analyze:\n{{ $json.text }}\n\nOutput format:\nReturn only the identified PII items in this exact format:\n['email', 'phone_number', 'credit_card', 'iban']\n\nIf no PII is detected, return an empty array: []\n\nRespond exclusively with the PII category names, not the actual values. Avoid any additional text or explanations",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in recognizing personal identifiable information"
+            }
+          ]
+        }
+      },
+      "id": "f4225269-e6ba-47a9-a08e-c4c2c7b2efe4",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        1620,
+        140
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireworkAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8bc64528-99a3-4eeb-b34d-5fc69ecdafb0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "0n8jZ3HmztIZXgz7",
+  "tags": []
+}

@@ -1,0 +1,224 @@
+{
+  "name": "GIZ-zero shot 3b",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a34b5504-fc31-4a1f-9027-b3846b53434d",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        480,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/masterarbeit/Test files/GIZ/zero/*",
+        "options": {}
+      },
+      "id": "397f1ad5-e4e7-4bfc-be72-bcea48d1bbf3",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        700,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "24c777d7-4833-42df-aae7-8f3da3b42cd2",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1140,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "id": "3d79893c-7304-4c76-b7d7-daaca326c792",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        880,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "",
+          "__regex": "https:\\/\\/docs\\.google.com\\/spreadsheets\\/d\\/[0-9a-zA-Z\\-_]+.*\\#gid=([0-9]+)"
+        }
+      },
+      "id": "739a090d-f9c2-4eca-b1f9-a35fe51b3bad",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2600,
+        280
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PSQIceMLQtFmxoY0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "accounts/fireworks/models/llama-v3p2-3b-instruct",
+        "options": {
+          "baseURL": "https://api.fireworks.ai/inference/v1",
+          "temperature": 0
+        }
+      },
+      "id": "e9e260fc-3266-47a8-acf5-8f71ea23a88b",
+      "name": "FireworkAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        280
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vAX0NXxxK41wpEUV",
+          "name": "FireworkAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the document and classify it using GIZ sector labels. Focus on selecting the fewest, most relevant categories only!\n\nSector label List:\n\n- 'Agriculture'\n- 'Buildings'\n- 'Coastal Zone'\n- 'Cross-Cutting Area'\n- 'Disaster Risk Management (DRM)'\n- 'Economy-wide'\n- 'Education'\n- 'Energy'\n- 'Environment\n- 'Health'\n- 'Industries'\n- 'LULUCF/Forestry'\n- 'Social Development'\n- 'Tourism'\n- 'Transport'\n- 'Urban'\n- 'Waste'\n- Water\n\n\nDocument:\n{{ $('Loop Over Items').item.json.context }}\n\nResponse Format:\nRespond only the selected labels as a list: ['label1', 'label2'] with no additional comments!  ",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in document classification"
+            }
+          ]
+        }
+      },
+      "id": "391903ce-4c64-4047-8e1e-32f80f7f0107",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        1720,
+        -20
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireworkAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "56f3c901-79d6-4752-a568-81828e157a7a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "tXbooYfqQD9NU0IR",
+  "tags": []
+}

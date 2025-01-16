@@ -1,0 +1,366 @@
+{
+  "name": "GIZ-few shot 3b",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cb4e2c3b-0f62-4a9c-94c2-5fc708717feb",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        480,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/masterarbeit/Test files/GIZ/few/*",
+        "options": {}
+      },
+      "id": "02bce64a-4f51-41c2-adb5-a8e0e470d4c3",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        700,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "fdc525c0-998c-495c-af7a-4e702a19169a",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1140,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "id": "750da73a-0f10-4333-bdb3-bbdb1366ed5c",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        880,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1qwn4O6swYYCLhph5BFEvtxD5AYOH7imkdw3aYaq5gOA",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 658041360,
+          "mode": "list",
+          "cachedResultName": "llama 3.2 3b few",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1qwn4O6swYYCLhph5BFEvtxD5AYOH7imkdw3aYaq5gOA/edit#gid=658041360"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "LLM": "={{ $json.text }}",
+            "Human": "={{ $('Loop Over Items').item.json.sectors_list }}",
+            "ID": "={{ $('Loop Over Items').item.json.ID }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Human",
+              "displayName": "Human",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LLM",
+              "displayName": "LLM",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c3da4a0d-b80c-4357-a596-595e72818caf",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2840,
+        340
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PSQIceMLQtFmxoY0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "accounts/fireworks/models/llama-v3p2-3b-instruct",
+        "options": {
+          "baseURL": "https://api.fireworks.ai/inference/v1",
+          "maxTokens": 100,
+          "temperature": 0
+        }
+      },
+      "id": "c9705d66-f56b-4581-8d80-604a8ff9b73a",
+      "name": "FireworkAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        280
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vAX0NXxxK41wpEUV",
+          "name": "FireworkAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "id": "d3af3389-29d5-4d12-a424-10391d63aff5",
+      "name": "Embeddings Google Gemini",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        220
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8sNGyNgidlmAFxq9",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "gizexamples",
+          "mode": "list",
+          "cachedResultName": "gizexamples"
+        },
+        "prompt": "={{ $json.context }}",
+        "topK": 3,
+        "options": {}
+      },
+      "id": "787ff4c1-f598-4edd-b6a4-174325fedf85",
+      "name": "Pinecone Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        1500,
+        40
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "pineconeApi": {
+          "id": "KdCG68LoUziBuQbk",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "document.pageContent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6fb5948b-fdb8-4b5c-9a45-a6b08935a9ce",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1880,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the document and classify it using GIZ sector labels. Focus on selecting the fewest, most relevant categories only!\n\nSector label List:\n\n- 'Agriculture'\n- 'Buildings'\n- 'Coastal Zone'\n- 'Cross-Cutting Area'\n- 'Disaster Risk Management (DRM)'\n- 'Economy-wide'\n- 'Education'\n- 'Energy'\n- 'Environment\n- 'Health'\n- 'Industries'\n- 'LULUCF/Forestry'\n- 'Social Development'\n- 'Tourism'\n- 'Transport'\n- 'Urban'\n- 'Waste'\n- Water\n\nUse the three similar document examples and their annotated sector labels as a guide:\n\n1) {{ $json.pageContent[0] }}\n\n2) {{ $json.pageContent[1] }}\n\n3) {{ $json.pageContent[2] }}\n\nDocument:\n{{ $('Loop Over Items').item.json.context }}\n\nResponse Format:\nRespond only the selected labels as a list: ['label1', 'label2'] with no additional comments!  ",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in document classification"
+            }
+          ]
+        }
+      },
+      "id": "3372556c-cdc9-411a-95cd-52b813ac7a5f",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        2200,
+        -20
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireworkAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dbde0084-4682-4194-859b-943a78c4f55b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "ti2wz4mtjGj3rQvU",
+  "tags": []
+}

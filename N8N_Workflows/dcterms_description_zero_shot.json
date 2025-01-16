@@ -1,0 +1,216 @@
+{
+  "name": "Abstracts gemini flash zero shot",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "4adfb1f9-bbe1-4e8e-9382-7375b8304e69",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        800,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/Results/PubMed/Pubmed_articles_ test_full_json - GPT40minizero/*",
+        "options": {}
+      },
+      "id": "82162744-f2d7-4555-b1d1-7caa500f9548",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1020,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "8e88f819-50a8-409c-a3e6-ec482a98a732",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1240,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "id": "51a2c0f5-07c1-4304-b0ee-f89e3718c728",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1500,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": ""
+        }
+      },
+      "id": "1b89f077-80eb-49fb-9b42-91fcb4f3f06a",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2460,
+        440
+      ],
+      "notesInFlow": false,
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PSQIceMLQtFmxoY0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "5e67a2ab-adb1-4abf-8e37-00194f4ba980",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        400
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "LzoRWIzbq0Zd55eL",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert abstract generator for medical articles. Your task is to create clear, concise, and informative abstracts suitable for peer-reviewed medical journals.\n\nGuidelines:\n\n**Structure:**\n\n**Background**: Briefly introduce the context.\n**Objectives**: State the research purpose.\n**Methods**: Summarize design, participants, interventions, and methods.\n**Results**: Present key findings with data.\n**Conclusions**: Highlight implications and recommendations.\n\n**Style:**\n\n- Clarity: Professional language.\n- Aim for one coherent text.\n- Tone: Objective, neutral.\n- Terminology: Standard medical terms; avoid jargon.\n- Acronyms: Define once, then use.\n- Data Reporting: Include data/statistics.\n\n**Avoid**:\n\n- Headlines\n- Personal Opinions\n- Redundancy\n- New Information\n- Phrases like \"This text/document describes...\"\n\nGenerate only the abstract text. Do not add comments.\n\nMedical Article:\n {{ $('Extract from File').item.json.data.article_text }}\n\n!Return only the abstract text and no additional information! Do not add comments!\n\n\"Don't make any greetings, like, Here your response\"\n\n"
+      },
+      "id": "5295bb76-67d4-43b9-b092-8e295a71a73e",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        1900,
+        240
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f4b3d1c4-2a4a-4bc0-8870-733fcc6ebae8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "3PIhPL7ujxbQQk9N",
+  "tags": []
+}

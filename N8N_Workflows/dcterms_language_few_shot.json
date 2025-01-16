@@ -1,0 +1,364 @@
+{
+  "name": "Language few shot 1",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "e11af346-e7d6-42bd-9b4f-1114cb089003",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        480,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/masterarbeit/Test files/DCAT-language/*",
+        "options": {}
+      },
+      "id": "2b6e56b2-35ab-4ac7-a744-e9ac0a65e8fe",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        700,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "1280ef92-c07b-4eda-99b6-7adec8379dfa",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1140,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "id": "cd2a315b-577a-423d-b70b-9514acf007ed",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        880,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1oB5cteI78A-NIK3OGxOICV9o_FTkYcq9C7cnxx60OIA",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 365505507,
+          "mode": "list",
+          "cachedResultName": "GPt4o mini few",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1oB5cteI78A-NIK3OGxOICV9o_FTkYcq9C7cnxx60OIA/edit#gid=365505507"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "LLM": "={{ $json.document.pageContent }}",
+            "Human": "={{ $('Loop Over Items').item.json.id }}",
+            "TopLanguage": "={{ $('Loop Over Items').item.json['Top Language'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Human",
+              "displayName": "Human",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LLM",
+              "displayName": "LLM",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TopLanguage",
+              "displayName": "TopLanguage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a6331025-f17e-44dd-b944-56f10aa0283a",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2580,
+        340
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZX29YTH2kiu0Yn0D",
+          "name": "Google Sheets account l97.."
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "9597d32b-3a74-4cd2-8c75-106fd6be18ff",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        200
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "LzoRWIzbq0Zd55eL",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "id": "ebe3c12f-2d10-4ec2-b7c4-025d2d5b6565",
+      "name": "Embeddings Google Gemini1",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        180
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8sNGyNgidlmAFxq9",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "document.pageContent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9724a348-3d08-4c6e-ab99-0f5f96f746da",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "languagesexamples",
+          "mode": "list",
+          "cachedResultName": "languagesexamples"
+        },
+        "prompt": "={{ $json.Value }}",
+        "topK": 2,
+        "options": {}
+      },
+      "id": "601cfe18-2049-4f39-99d8-069dc156896a",
+      "name": "Pinecone Vector Store1",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        0
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "pineconeApi": {
+          "id": "KdCG68LoUziBuQbk",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Identify the primary language of the following document. Consider linguistic features and structure to determine the language accurately\n\nTake this example are a guide:\n{{ $json.pageContent[0] }} \n\n{{ $json.pageContent[1] }}\n\nDocument:\n{{ $('Loop Over Items').item.json.Value }}\n\nOutput format:\nReturn only the identified language in the following format:\n\"language\"",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in recognizing languages"
+            }
+          ]
+        }
+      },
+      "id": "d1dbb5e6-2e14-46ff-89a0-63ca7ba20e2b",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        2080,
+        -60
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "28aa715b-92c8-43c8-862e-329bf610e78e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "dHMvea6iKPt0vGmg",
+  "tags": []
+}

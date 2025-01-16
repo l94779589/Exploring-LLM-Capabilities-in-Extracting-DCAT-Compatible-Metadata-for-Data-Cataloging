@@ -1,0 +1,404 @@
+{
+  "name": "Abstracts gemini pro shot",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "64738285-f566-4c88-a4f2-71cc198b5a88",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        800,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/Results/PubMed/Pubmed_articles_ test_full_jsongeminiprofew/*",
+        "options": {}
+      },
+      "id": "867b45bd-5d22-4581-9f8d-f1c8ce96da03",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        980,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "39f32514-a5d5-4e8d-91bd-d08aa11d41ee",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1200,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "id": "eda698da-6ce1-4fe9-b3ad-77fe962bae1c",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "",
+          "__regex": "https:\\/\\/docs\\.google.com\\/spreadsheets\\/d\\/[0-9a-zA-Z\\-_]+.*\\#gid=([0-9]+)"
+        }
+      },
+      "id": "826512d6-e63b-4e42-a66e-a6b84c2c87f4",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        3040,
+        400
+      ],
+      "notesInFlow": false,
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PSQIceMLQtFmxoY0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "id": "278d29de-8e12-45b7-ad42-fda6d576a51a",
+      "name": "Embeddings Google Gemini",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2060,
+        260
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "IOkUIP3OT3YjuZou",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "document.pageContent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6a329f6e-9159-4cff-be18-4a2a8cad70f0",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro",
+        "options": {
+          "temperature": 0,
+          "safetySettings": {
+            "values": [
+              {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_NONE"
+              },
+              {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_NONE"
+              },
+              {
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "BLOCK_NONE"
+              },
+              {
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_NONE"
+              }
+            ]
+          }
+        }
+      },
+      "id": "792b1f6f-eded-478b-bb84-595a746a3c67",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2580,
+        300
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8sNGyNgidlmAFxq9",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Access the 'article_text' field from the input JSON\nconst articleText = $json.data.article_text || \"\";\n\n// Slice the first 2000 characters\nconst truncatedText = articleText.slice(0, 2000);\n\n// Return the result\nreturn {\n  json: {\n    truncatedText: truncatedText\n  }\n};\n"
+      },
+      "id": "904e2f12-229c-41cf-9499-dcdd6ad0e632",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1820,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2fd01056-77db-4dda-95cb-c1783663c766",
+              "name": "data.article_text",
+              "value": "={{ $json.data.article_text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5f155063-382b-48ea-a4a2-a001925f4124",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1640,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "pubmed6500",
+          "mode": "list",
+          "cachedResultName": "pubmed6500"
+        },
+        "prompt": "={{ $json.truncatedText }}",
+        "topK": 3,
+        "options": {}
+      },
+      "id": "d86dc1da-e98c-452f-8d6e-0eefa46ae25d",
+      "name": "Pinecone Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        2100,
+        80
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "KdCG68LoUziBuQbk",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Your task is to create a clear, concise, and informative abstract suitable for peer-reviewed medical journals.\n\nGuidelines:\n\n**Structure:**\n\n**Background**: Briefly introduce the context.\n**Objectives**: State the research purpose.\n**Methods**: Summarize design, participants, interventions, and methods.\n**Results**: Present key findings with data.\n**Conclusions**: Highlight implications and recommendations.\n\n**Style:**\n\n- Clarity: Professional language.\n- Suitable for a printed magazine\n- Tone: Objective, neutral.\n- Terminology: Standard medical terms; avoid jargon.\n- Acronyms: Define once, then use.\n- Data Reporting: Include data/statistics.\n\n**Avoid**:\n\n- Headlines\n- Personal Opinions\n- Redundancy\n- New Information\n- Phrases like \"This text/document describes...\"\n\nGenerate only the abstract text. Do not add comments.\n\nHere are three example abstracts for reference:\n\n{{ $json.pageContent[0] }}\n\n{{ $json.pageContent[1] }}\n\n{{ $json.pageContent[2] }}\n\nMedical Article:\n {{ $('Extract from File').item.json.data.article_text }}\n\n!Return only the abstract text and no additional information! Do not add comments!\n\n\"Don't make any greetings, like, Here your response\"\n\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert abstract generator for medical articles."
+            }
+          ]
+        }
+      },
+      "id": "5140843f-a614-4df0-a063-3a749190ed10",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        2660,
+        60
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "42b520ee-d04b-43d4-bf63-c739df483760",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "5A2r7A9RJNOiYTK5",
+  "tags": []
+}

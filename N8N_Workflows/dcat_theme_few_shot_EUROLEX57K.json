@@ -1,0 +1,570 @@
+{
+  "name": "EuroVoc Zeroshot LLama 3.1 Instruct",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "id": "00a52d4c-7ac1-4017-ad37-90e232f1ed02",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const data = item.json.data; // Access the data object\n  const mainBodyText = data.main_body.join(\" \"); // Join all elements of the main_body array into a single string with spaces between them\n  \n  // Combine all parts into a single string with key names as labels\n  const fullText = `Title: ${data.title.trim()}\\nHeader: ${data.header.trim()}\\nRecitals: ${data.recitals.trim()}\\nMain Body: ${mainBodyText.trim()}\\nAttachments: ${data.attachments.trim()}`;\n  \n  // Return the combined text as part of the item\n  return {\n    json: {\n      fullText: fullText // Store the combined text under a new key\n    }\n  };\n});\n"
+      },
+      "id": "4b5af922-215f-44fa-93d8-99272f544b0d",
+      "name": "Merge json",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "42d71d1d-9ec8-4ad1-a51c-825b2383efee",
+              "name": "data.title",
+              "value": "={{ $json.data.celex_id }}",
+              "type": "string"
+            },
+            {
+              "id": "c1f9c3cc-552d-4c83-a822-ca01402db7c6",
+              "name": "data.header",
+              "value": "={{ $json.data.header }}",
+              "type": "string"
+            },
+            {
+              "id": "f18ddc0d-d3b2-4d02-a3bf-fe0d32a249a2",
+              "name": "data.recitals",
+              "value": "={{ $json.data.recitals }}",
+              "type": "string"
+            },
+            {
+              "id": "8dd1889a-42d5-43c8-8b54-2f03f0302bfe",
+              "name": "data.main_body",
+              "value": "={{ $json.data.main_body }}",
+              "type": "array"
+            },
+            {
+              "id": "5b281f8c-f399-404e-a651-9960b76f6aab",
+              "name": "data.attachments",
+              "value": "={{ $json.data.attachments }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6747066e-0e99-448c-b29b-6ee06bd7b4d3",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1180,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": ""
+        }
+      },
+      "id": "2613c4a2-5906-46d7-b3ec-e1b085d833e1",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        3760,
+        260
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZX29YTH2kiu0Yn0D",
+          "name": "Google Sheets account l97.."
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "id": "2ed51049-3a00-46ba-9bcf-5510093055bf",
+      "name": "Embeddings Google Gemini",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        740
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "IOkUIP3OT3YjuZou",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json[\"text\"]; // Ensure this key exists in your input\n\nif (!text || typeof text !== 'string') {\n    // Return an empty array if there's no valid text input\n    return [];\n}\n\n// Clean up the text by removing square brackets and splitting by newlines\nconst cleanedText = text.replace(/[\\[\\]]/g, \"\").split('\\n').filter(line => line.trim() !== \"\");\n\n// Map over each line to process and return\nreturn cleanedText.map((topic, index) => {\n    return {\n        json: {\n            topic: topic.replace(/\"/g, '').trim(), // Remove quotes and trim whitespace\n            index: index + 1\n        }\n    };\n});\n\n"
+      },
+      "id": "470b733b-c6f7-44b2-aea5-07ff63a1b10f",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "ee881cbe-5c39-40d4-b587-d3c1e3e1358d",
+      "name": "Loop Over Items1",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2240,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "document.pageContent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8c51f639-00ec-4ede-b56f-c09ac0f8d976",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2540,
+        260
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "efd61a01-1e70-4f48-9f0e-c8dbcbf3c2c3",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        760,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "model": "accounts/fireworks/models/llama-v3p2-3b-instruct",
+        "options": {
+          "baseURL": "https://api.fireworks.ai/inference/v1",
+          "temperature": 0
+        }
+      },
+      "id": "b31de361-bdc8-48ed-ad46-9c3769a0ffc1",
+      "name": "FireworkAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        660
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vAX0NXxxK41wpEUV",
+          "name": "FireworkAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "accounts/fireworks/models/llama-v3p2-3b-instruct",
+        "options": {
+          "baseURL": "https://api.fireworks.ai/inference/v1",
+          "temperature": 0
+        }
+      },
+      "id": "c061fccd-dad4-4c2b-86b6-31863a1fc55a",
+      "name": "FireworkAI1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        3260,
+        500
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vAX0NXxxK41wpEUV",
+          "name": "FireworkAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "eurovocidssingle",
+          "mode": "list",
+          "cachedResultName": "eurovocidssingle"
+        },
+        "prompt": "={{ $json.topic }}",
+        "topK": 2,
+        "options": {}
+      },
+      "id": "7f53ab94-858f-4e52-a77c-c3c980f5a884",
+      "name": "Pinecone Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        2460,
+        480
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "KdCG68LoUziBuQbk",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/text-embedding-004"
+      },
+      "id": "606979f7-a2d0-444d-9aa2-02efc69033d7",
+      "name": "Embeddings Google Gemini1",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2940,
+        440
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8sNGyNgidlmAFxq9",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "inspecexamples",
+          "mode": "list",
+          "cachedResultName": "inspecexamples"
+        },
+        "prompt": "=",
+        "topK": 3,
+        "options": {}
+      },
+      "id": "d25afb4e-1337-43a1-9cae-c18f33c17690",
+      "name": "Pinecone Vector Store2",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        2820,
+        260
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "pineconeApi": {
+          "id": "KdCG68LoUziBuQbk",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the document and select the most relevant EuroVoc IDs that capture its topics and themes. Prioritize accuracy and relevance over quantitity, choosing only the IDs that add distinct value. You may select up to 10 IDs, but use fewer if possible!\n\nUse the three similar document examples and their annotated EuroVoc IDs as a guide: \n{{ $json.pageContent[0] }}\n\n{{ $json.pageContent[1] }}\n\n{{ $json.pageContent[2] }}\n\nDocument to analyze:\n{{ $('Merge json').item.json.fullText }}\n\nAssign the best matching EuroVoc IDs from this list:\n {{ $json.pageContent }}\n\nYou must output only the selected IDs as numbers formatted as a JSON array of strings. Do not provide any additional text, explanation, or commentary. Do not return any words or letters!\n\n\nBegin your response with:\n\n[\n\nAnd end your response before providing any additional information.\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in document classification"
+            }
+          ]
+        }
+      },
+      "id": "28883968-e979-459e-8ff9-76640cf48d19",
+      "name": "Basic LLM Chain1",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        3220,
+        260
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the content of this document and identify up to 10 core topics that best describe the substance of the document. Focus exclusively on the main themes and subject matter, and disregard any general terms related to the nature or format of the document itself. Do not return more than 10 topics! Choose quality over quantity! Each topic must provide individual value!\n\n\n\nDocument:  {{ $json.fullText }}\n\nOutput format:\n['keyphrase1', 'keyphrase2']\n",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a helpful assistant who analyzes documents and returns the key topics and concepts as bullet points. Do not return more than 10 topics! Choose quality over quantity! Each topic must provide individual value!   Example:   Document: Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.  Example Output Schema: {   \"type\": \"array\",   \"items\": {     \"type\": \"string\"   } } Example Output 1: [   \"Topic_1\",   \"Topic_2\",   \"Topic_3\" ] Example Output 2: [   \"Topic_1\",   \"Topic_2\",   \"Topic_3\" ]  Do not provide any additional text, explanation, or commentary. Begin your response with:  [  And end your response before providing any additional information."
+            }
+          ]
+        }
+      },
+      "id": "bcff1c54-4c51-4ae2-98f7-17d84d86db5f",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        1680,
+        420
+      ],
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge json": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireworkAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireworkAI1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store2": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "97917b96-e3f0-4a6c-949d-023f2aa92822",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "V9lLSPlxxhDbDQlS",
+  "tags": [
+    {
+      "createdAt": "2024-08-22T13:26:18.567Z",
+      "updatedAt": "2024-08-22T13:26:18.567Z",
+      "id": "5ZfIpTrc4IRaLoZH",
+      "name": "llama8b"
+    },
+    {
+      "createdAt": "2024-08-16T14:12:08.882Z",
+      "updatedAt": "2024-08-16T14:12:08.882Z",
+      "id": "J7waUwvhgbNojHka",
+      "name": "untrained"
+    },
+    {
+      "createdAt": "2024-08-16T14:12:11.747Z",
+      "updatedAt": "2024-08-16T14:12:11.747Z",
+      "id": "U9uIq8VGKNMUSJGy",
+      "name": "RAG"
+    },
+    {
+      "createdAt": "2024-08-08T10:53:54.808Z",
+      "updatedAt": "2024-08-08T10:53:54.808Z",
+      "id": "tJlXzHyOLaukonnA",
+      "name": "EuroVoc"
+    },
+    {
+      "createdAt": "2024-08-16T14:12:14.196Z",
+      "updatedAt": "2024-08-16T14:12:14.196Z",
+      "id": "wwnSu12UrW9G2PqX",
+      "name": "zero"
+    }
+  ]
+}

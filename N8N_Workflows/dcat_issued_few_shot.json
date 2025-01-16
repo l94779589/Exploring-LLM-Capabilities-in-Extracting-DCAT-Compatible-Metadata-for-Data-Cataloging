@@ -1,0 +1,224 @@
+{
+  "name": "Dcat-Issued zero",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "691f550d-111a-4278-91a5-f59748acb255",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        640,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "C:/Users/busch/Desktop/masterarbeit/Test files/DACT_issued/*",
+        "options": {}
+      },
+      "id": "0ff87491-682e-41f7-9890-551bc2af59a1",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        980,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a072229d-581a-4b12-a44e-0c8682dbb93f",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1500,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "id": "c225497f-f960-4122-bae9-e6d818711b59",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": ""
+        }
+      },
+      "id": "9c311068-9645-412b-a125-6dd61f17658f",
+      "name": "Google Sheets1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        2360,
+        440
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PSQIceMLQtFmxoY0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "accounts/fireworks/models/llama-v3p2-3b-instruct",
+        "options": {
+          "baseURL": "https://api.fireworks.ai/inference/v1",
+          "maxTokens": 200,
+          "temperature": 0
+        }
+      },
+      "id": "6c44b51d-2d6c-4af8-a55f-97068489074d",
+      "name": "FireworkAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1900,
+        40
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vAX0NXxxK41wpEUV",
+          "name": "FireworkAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\"Identify and extract the publication date from the provided document. Return only the date in the following format: YYYY-MM (e.g., for December 2022, return '2022-12'). Ensure the response includes only the date, with no additional text or formatting.\" \n\nUse the provided examples as guidance.\n\nExample 1: \nInput:\"Large Language Model as Attributed Training Data Generator: [...] to \nfacilitate future research. arXiv:2306.15895v2 [cs.CL] 18 Oct 2023\"\n\nOutput: \"2023-10\"\n\nExample 2: \nInput:\"Pretrained large language models (LLMs) are widely used in many [...]\ndatasets or few-shot exemplars. arXiv:2406.11895v1 [cs.CL] 12 Juni 2024\"\n\nOutput: \"2024-06\"\n\nDocument to analyze:\n{{ $json.OCR }}\n\nResponse:\nProvide only the extracted date, strictly formatted as YYYY-MM. No other content should be included.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert in identifying the issuance date from documentss"
+            }
+          ]
+        }
+      },
+      "id": "6a3fa245-3c0c-4ede-9d20-ede0175e76e8",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        1900,
+        -140
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FireworkAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f0cce83b-dd3d-4ed1-ac1a-58793ddb517e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8f11519718adee03e2d124652af9bb3152c37445373ae6fdf13778da8befc4a9"
+  },
+  "id": "IzpFdqDADhWdBrjz",
+  "tags": []
+}
