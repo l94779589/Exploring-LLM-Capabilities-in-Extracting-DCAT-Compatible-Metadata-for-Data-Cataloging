@@ -1,0 +1,25 @@
+Evaluated Datasets:
+
+dcterms:title:        https://github.com/EagleW/ACL_titles_abstracts_dataset
+dcterm:description:   https://github.com/armancohan/long-summarization
+dcterms:language:     https://huggingface.co/datasets/gsarti/flores_101
+dcterms:creator:      https://huggingface.co/datasets/RealTimeData/arxiv_latest
+dcterms:spatial:      https://www.iges.or.jp/en/pub/iges-indc-ndc-database/en
+dcat:issued:          https://huggingface.co/datasets/RealTimeData/arxiv_latest
+dcat:keyword:         https://github.com/LIAAD/KeywordExtractor-Datasets#SemEval2010
+                      https://github.com/LIAAD/KeywordExtractor-Datasets#SemEval2017
+dcat:theme:           https://github.com/iliaschalkidis/lmtc-eurlex57k
+                      https://huggingface.co/datasets/GIZ/sector_data
+
+
+
+
+Datasets used for few-shot prompting:
+
+dcterms:title:        https://huggingface.co/datasets/ACLMeeting/ACL2024-papers/tree/main/data
+                      https://huggingface.co/datasets/ACLMeeting/ACL2023-papers
+dcat:keywords:        https://github.com/LIAAD/KeywordExtractor-Datasets?tab=readme-ov-file#inspec
+
+
+
+            
