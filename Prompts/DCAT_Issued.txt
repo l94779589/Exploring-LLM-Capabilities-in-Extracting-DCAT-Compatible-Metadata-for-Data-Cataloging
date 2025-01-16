@@ -1,0 +1,41 @@
+Zero-Shot Prompt:
+
+Identify and extract the publication date from the provided document. Return only 
+the date in the following format: YYYY-MM (e.g., for December 2022, return 
+'2022-12'). Ensure the response includes only the date, with no additional text or 
+formatting.
+
+Document to analyze: 
+{document_text}.
+
+Response:
+Provide only the extracted date, strictly formatted as YYYY-MM.
+
+-------------------------------------------------------------------
+
+Few-Shot Prompt:
+
+Identify and extract the publication date from the provided document. Return only 
+the date in the following format: YYYY-MM (e.g., for December 2022, return 
+'2022-12'). Ensure the response includes only the date, with no additional text or 
+formatting.
+
+Use the provided examples as guidance.
+
+Example 1: 
+Input:"Large Language Model as Attributed Training Data Generator: [...] to 
+facilitate future research. arXiv:2306.15895v2 [cs.CL] 18 Oct 2023"
+
+Output: "2023-10"
+
+Example 2: 
+Input:"Pretrained large language models (LLMs) are widely used in many [...]
+data sets or few-shot exemplars. arXiv:2406.11895v1 [cs.CL] 12 Juni 2024"
+
+Output: "2024-06"
+
+Document to analyze: 
+{document_text}.
+
+Response:
+Provide only the extracted date, strictly formatted as YYYY-MM.
