@@ -1,0 +1,67 @@
+!pip install pandas openpyxl fuzzywuzzy[speedup] unidecode
+
+import pandas as pd
+import re
+from fuzzywuzzy import fuzz
+
+file_path = '/content/Input.xlsx'
+df = pd.read_excel(file_path)
+
+def parse_author_string(author_str):
+    if not isinstance(author_str, str):
+        return []
+        author_str = author_str.strip('[]')
+        authors = re.findall(r"'(.*?)'", author_str
+    authors = [name.strip() for name in authors if name.strip() and name.strip() != '...']
+    return authors
+
+df['Human_list'] = df['Human'].apply(parse_author_string)
+df['LLM_list'] = df['LLM'].apply(parse_author_string)
+
+df['total'] = df['Human_list'].apply(len)
+
+def compare_author_lists(human_list, llm_list):
+    exact_matches = 0
+    fuzzy_90 = 0
+    fuzzy_70 = 0
+
+    llm_names_remaining = llm_list.copy()
+
+    for h_name in human_list:
+        best_score = 0
+        best_match = None
+
+        for l_name in llm_names_remaining:
+            score = fuzz.ratio(h_name, l_name)
+            if score > best_score:
+                best_score = score
+                best_match = l_name
+
+        if best_match:
+                       llm_names_remaining.remove(best_match)
+
+            # Increment counts based on the score (cumulative)
+            if best_score >= 70:
+                fuzzy_70 += 1
+                if best_score >= 90:
+                    fuzzy_90 += 1
+                    if best_score == 100:
+                        exact_matches += 1
+
+    return {
+        'exact_match_count': exact_matches,
+        'fuzzy_90_count': fuzzy_90,
+        'fuzzy_70_count': fuzzy_70
+    }
+
+df['comparison_results'] = df.apply(
+    lambda row: compare_author_lists(row['Human_list'], row['LLM_list']), axis=1)
+
+df['100%'] = df['comparison_results'].apply(lambda x: x['exact_match_count'])
+df['90%'] = df['comparison_results'].apply(lambda x: x['fuzzy_90_count'])
+df['70%'] = df['comparison_results'].apply(lambda x: x['fuzzy_70_count'])
+
+df.drop(columns=['comparison_results', 'Human_list', 'LLM_list'], inplace=True)
+
+output_path = '/content/output.xlsx'
+df.to_excel(output_path, index=False)

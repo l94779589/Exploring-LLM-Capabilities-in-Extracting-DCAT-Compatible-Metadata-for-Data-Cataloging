@@ -1,0 +1,60 @@
+import pandas as pd
+import numpy as np
+import ast
+from sklearn.metrics import precision_score, recall_score, f1_score
+
+file_path = '/content/input.xlsx'
+data = pd.read_excel(file_path)
+
+def to_list(ids):
+    try:
+        return ast.literal_eval(ids)
+    except (ValueError, SyntaxError):
+        return []
+
+data['Human'] = data['Human'].apply(to_list)
+data['LLM'] = data['LLM'].apply(to_list)
+
+def binarize_labels(human_ids, llm_ids_cleaned, all_ids):
+    human_set = set(human_ids)  # Convert to set
+    llm_set = set(llm_ids_cleaned)  # Convert to set
+    human_vector = [1 if label in human_set else 0 for label in all_ids]
+    llm_vector = [1 if label in llm_set else 0 for label in all_ids]
+    return human_vector, llm_vector
+
+all_ids = sorted(list(set().union(*data['Human'], *data['LLM'])))
+
+human_vectors = []
+llm_vectors = []
+
+for _, row in data.iterrows():
+    human_vector, llm_vector = binarize_labels(row['Human'], row['LLM'], all_ids)
+    # Ensure vectors are not empty before appending
+    if human_vector and llm_vector:
+        human_vectors.append(human_vector)
+        llm_vectors.append(llm_vector)
+
+
+human_vectors = np.array(human_vectors)
+llm_vectors = np.array(llm_vectors)
+
+print(f"Shape of human_vectors: {human_vectors.shape}")
+print(f"Shape of llm_vectors: {llm_vectors.shape}")
+
+try:
+    micro_precision = precision_score(human_vectors, llm_vectors, average='micro', zero_division=0)
+    micro_recall = recall_score(human_vectors, llm_vectors, average='micro', zero_division=0)
+    micro_f1 = f1_score(human_vectors, llm_vectors, average='micro', zero_division=0)
+
+    macro_precision = precision_score(human_vectors, llm_vectors, average='macro', zero_division=0)
+    macro_recall = recall_score(human_vectors, llm_vectors, average='macro', zero_division=0)
+    macro_f1 = f1_score(human_vectors, llm_vectors, average='macro', zero_division=0)
+
+    print(f"Micro Precision: {micro_precision}")
+    print(f"Micro Recall: {micro_recall}")
+    print(f"Micro F1 Score: {micro_f1}")
+    print(f"Macro Precision: {macro_precision}")
+    print(f"Macro Recall: {macro_recall}")
+    print(f"Macro F1 Score: {macro_f1}")
+except ValueError as e:
+    print(f"Error: {e}")

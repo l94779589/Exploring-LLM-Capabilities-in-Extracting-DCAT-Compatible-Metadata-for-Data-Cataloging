@@ -1,0 +1,106 @@
+import pandas as pd
+import requests
+import json
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+import time
+
+
+file_path = '/content/Results_Llama3_8b_few_shot.xlsx'
+df = pd.read_excel(file_path)
+
+
+API_KEY = ''
+
+
+def define_columns(df, col_human, col_llm):
+    """
+    Function to define the columns for comparison.
+    :param df: DataFrame containing the data.
+    :param col_human: Column name for human labels.
+    :param col_llm: Column name for LLM labels.
+    :return: DataFrame with specified columns.
+    """
+    if col_human not in df.columns or col_llm not in df.columns:
+        raise ValueError(f"One or both of the columns '{col_human}' or '{col_llm}' do not exist in the Excel file.")
+
+    return df[[col_human, col_llm]]
+
+
+human_label_column = 'Human'
+llm_label_column = 'LLM'
+df_selected = define_columns(df, human_label_column, llm_label_column)
+
+
+def get_embedding(text):
+    model = "models/text-embedding-004"  
+    url = f"https://generativelanguage.googleapis.com/v1beta/{model}:embedContent?key={API_KEY}"
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+
+    limited_text = text[:9500]
+
+
+    data = {
+        "content": {
+            "parts": [
+                {"text": limited_text}
+            ]
+        },
+        "outputDimensionality": 768  
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    response.raise_for_status() 
+    embedding = response.json().get('embedding', {}).get('values', None)
+    return embedding
+
+
+cosine_similarities = []
+
+chunk_size = 5
+output_file_path = '/content/Final Results llama 3.1 8b zero shot cosine.xlsx'
+
+
+delay_per_request = 0.1  
+
+for index, row in df_selected.iterrows():
+    try:
+        text_a = row[human_label_column]  
+        text_b = row[llm_label_column]    
+
+        print(f"\nProcessing row {index+1}/{len(df_selected)}...")
+
+       
+        embedding_a = get_embedding(text_a)
+        embedding_b = get_embedding(text_b)
+
+        if embedding_a is not None and embedding_b is not None:
+           
+            cosine_similarity_score = cosine_similarity([embedding_a], [embedding_b])[0][0]
+            cosine_similarities.append(cosine_similarity_score)
+        else:
+            raise ValueError(f"Failed to generate embeddings for row {index+1}. Text A: {text_a[:60]}, Text B: {text_b[:60]}")
+
+        
+        time.sleep(delay_per_request)
+
+        
+        if (index + 1) % chunk_size == 0 or (index + 1) == len(df_selected):
+            
+            start_row = index + 1 - len(cosine_similarities)
+            df.loc[start_row:index, 'Cosine Similarity'] = cosine_similarities
+            print(f"Writing results for rows {start_row + 1} to {index + 1} to Excel file...")
+            df.to_excel(output_file_path, index=False)
+            print(f"Results written up to row {index + 1}. Continuing...")
+            
+            cosine_similarities = []
+
+    except Exception as e:
+        
+        raise RuntimeError(f"Error processing row {index+1}. Text A: {text_a[:60]}, Text B: {text_b[:60]}. Error: {str(e)}")
+
+print(f"\nFinal results written to {output_file_path}")

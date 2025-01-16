@@ -1,0 +1,135 @@
+import pandas as pd
+import ast
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
+import nltk
+
+
+nltk.download('punkt')          
+nltk.download('wordnet')        
+nltk.download('omw-1.4')        
+nltk.download('punkt_tab')      
+
+
+nltk.download('punkt', quiet=True)
+
+
+stemmer = PorterStemmer()
+
+
+def stem_keyphrases(keyphrases):
+    return [
+        ' '.join([stemmer.stem(word.lower()) for word in word_tokenize(phrase.lower())])
+        for phrase in keyphrases
+    ]
+
+
+def evaluate_f1_at_k(human_keyphrases, llm_keyphrases, k):
+    # Stem and lowercase keyphrases
+    human_keyphrases_stemmed = stem_keyphrases(human_keyphrases)
+    human_keyphrases_stemmed = list(dict.fromkeys(human_keyphrases_stemmed))  # Remove duplicates
+
+    llm_keyphrases_stemmed = stem_keyphrases(llm_keyphrases)
+    llm_keyphrases_stemmed = list(dict.fromkeys(llm_keyphrases_stemmed))  # Remove duplicates
+
+
+    llm_keyphrases_top_k = llm_keyphrases_stemmed[:k]
+
+
+    num_correct = len(set(human_keyphrases_stemmed) & set(llm_keyphrases_top_k))
+
+
+    precision_at_k = num_correct / k if k > 0 else 0
+    recall_at_k = num_correct / len(human_keyphrases_stemmed) if len(human_keyphrases_stemmed) > 0 else 0
+
+
+    if precision_at_k + recall_at_k == 0:
+        f1_at_k = 0
+    else:
+        f1_at_k = 2 * (precision_at_k * recall_at_k) / (precision_at_k + recall_at_k)
+    return f1_at_k
+
+
+df = pd.read_excel('/content/input.xlsx')
+
+
+f1_at_5_list = []
+f1_at_10_list = []
+f1_at_15_list = []
+
+
+total_human_keyphrases = 0
+total_llm_keyphrases = 0
+num_rows_processed = 0  # Count of successfully processed rows
+
+
+skipped_rows = 0
+
+
+for index, row in df.iterrows():
+    try:
+
+        human_keyphrases = ast.literal_eval(row['Human'])
+        llm_keyphrases = ast.literal_eval(row['LLM'])
+        
+
+        if not human_keyphrases or not llm_keyphrases:
+            f1_at_5_list.append(0)
+            f1_at_10_list.append(0)
+            f1_at_15_list.append(0)
+            print(f"Row {index}: Empty keyphrase list.")
+            continue  # Skip to the next iteration
+
+
+        human_keyphrases_stemmed = stem_keyphrases(human_keyphrases)
+        human_keyphrases_stemmed = list(dict.fromkeys(human_keyphrases_stemmed))  # Remove duplicates
+        llm_keyphrases_stemmed = stem_keyphrases(llm_keyphrases)
+        llm_keyphrases_stemmed = list(dict.fromkeys(llm_keyphrases_stemmed))  # Remove duplicates
+
+        num_human_keyphrases = len(human_keyphrases_stemmed)
+        num_llm_keyphrases = len(llm_keyphrases_stemmed)
+
+
+        total_human_keyphrases += num_human_keyphrases
+        total_llm_keyphrases += num_llm_keyphrases
+        num_rows_processed += 1
+
+
+        f1_at_5 = evaluate_f1_at_k(human_keyphrases, llm_keyphrases, 5)
+        f1_at_10 = evaluate_f1_at_k(human_keyphrases, llm_keyphrases, 10)
+        f1_at_15 = evaluate_f1_at_k(human_keyphrases, llm_keyphrases, 15)
+        
+
+        f1_at_5_list.append(f1_at_5)
+        f1_at_10_list.append(f1_at_10)
+        f1_at_15_list.append(f1_at_15)
+        
+        print(f"Row {index}: F1@5={f1_at_5:.4f}, F1@10={f1_at_10:.4f}, F1@15={f1_at_15:.4f}")
+        print(f"  Number of Human keyphrases: {num_human_keyphrases}")
+        print(f"  Number of LLM keyphrases: {num_llm_keyphrases}")
+        
+    except (SyntaxError, ValueError) as e:
+        print(f"Skipping row {index} due to error: {e}")
+        skipped_rows += 1
+    except Exception as e:
+        print(f"Error processing row {index}: {e}")
+        skipped_rows += 1
+
+avg_f1_at_5 = sum(f1_at_5_list) / len(f1_at_5_list) if f1_at_5_list else 0
+avg_f1_at_10 = sum(f1_at_10_list) / len(f1_at_10_list) if f1_at_10_list else 0
+avg_f1_at_15 = sum(f1_at_15_list) / len(f1_at_15_list) if f1_at_15_list else 0
+
+
+avg_human_keyphrases = total_human_keyphrases / num_rows_processed if num_rows_processed > 0 else 0
+avg_llm_keyphrases = total_llm_keyphrases / num_rows_processed if num_rows_processed > 0 else 0
+
+print(f"\nAverage F1@5: {avg_f1_at_5:.4f}")
+print(f"Average F1@10: {avg_f1_at_10:.4f}")
+print(f"Average F1@15: {avg_f1_at_15:.4f}")
+
+
+print(f"\nAverage number of Human keyphrases per row: {avg_human_keyphrases:.2f}")
+print(f"Average number of LLM keyphrases per row: {avg_llm_keyphrases:.2f}")
+
+
+print(f"\nNumber of skipped rows: {skipped_rows}")
