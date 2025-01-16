@@ -1,0 +1,28 @@
+Zero-Shot Prompt:
+
+Below is an abstract of a scientific document. Based on the content and key findings 
+described in the abstract, generate a concise and informative title that 
+accurately captures the essence of the document. The title should be clear, specific, 
+and relevant, while also being engaging and reflective of the main topic discussed.
+
+Abstract:
+{Abstract}
+
+-------------------------------------------------------------------
+
+Few-Shot Prompt:
+
+Below is an abstract of a scientific document. Based on the content and key findings 
+described in the abstract, generate a concise and informative title that
+accurately captures the essence of the document. The title should be clear, specific, 
+and relevant, while also being engaging and reflective of the main topic discussed.
+
+Use these three examples as a guide:
+{Example-1}
+{Example-2}
+{Example-3}
+
+Abstract to analyze:
+{Abstract}
+
+Respond only with the title  

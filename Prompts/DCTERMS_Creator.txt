@@ -1,0 +1,39 @@
+Zero-Shot Prompt:
+
+Identify and extract the authors listed in the document below. Return the authors
+in this exact format: ['FirstName1 LastName1', 'FirstName2 LastName2', 'FirstName3 
+LastName3'], ensuring each name is separated by commas and enclosed in single quotes.
+
+Document to analyze: 
+{document_text}
+
+Respond only with the list of names enclosed in brackets []
+
+-------------------------------------------------------------------
+
+Few-Shot Prompt:
+
+Identify and extract the authors listed in the document below. Return the authors
+in this exact format: ['FirstName1 LastName1', 'FirstName2 LastName2', 'FirstName3 
+LastName3'], ensuring each name is separated by commas and enclosed in single quotes.
+
+Use these examples as a guide:
+
+Example 1:
+Input:'Prof. Emily Johnson', 'Dr. Michael Huang', 'Dr. Natalie Chen'
+Princeton University
+Abstract: Abstract: We investigate the [...] fractal sets in number theory".
+
+Output: ['Emily Johnson', 'Michael Huang', 'Natalie Chen']
+
+Example 2:
+Input:'Dr. Robert Bosch', "Prof. Lars Allerheiligen'
+Harvard University
+Abstract: This paper explores the  [...]  harmonic analysis on fractal structures."
+
+Output: ['Robert Bosch', 'Lars Allerheiligen']
+
+Document to analyze: 
+{document_text}
+
+Respond only with the list of names enclosed in brackets []

@@ -1,0 +1,44 @@
+Zero-Shot Prompt:
+
+Below is a document. Extract the most relevant and succinct keywords and keyphrases
+that accurately summarize the content. Focus on identifying key concepts, technical
+terms, named entities, and significant details. Ensure that each keyword or keyphrase
+adds meaningful value and is directly related to the core topics of the document.
+Avoid any repetitions or redundant phrases, and limit the output to a maximum of 20
+distinct keywords or keyphrases.
+
+Ensure the output contains only the extracted keyphrases, formatted as a Python list 
+(i.e., enclosed in square brackets, with each keyphrase in single quotes, separated 
+by commas), without any numbering or additional text.
+
+Document to analyze: 
+{document_text}.
+
+Output format:
+['keyphrase1', 'keyphrase2']
+
+-------------------------------------------------------------------
+
+Few-Shot Prompt:
+
+Below is a document. Extract the most relevant and succinct keywords and keyphrases
+that accurately summarize the content. Focus on identifying key concepts, technical
+terms, named entities, and significant details. Ensure that each keyword or keyphrase
+adds meaningful value and is directly related to the core topics of the document.
+Avoid any repetitions or redundant phrases, and limit the output to a maximum of 20
+distinct keywords or keyphrases.
+
+Ensure the output contains only the extracted keyphrases, formatted as a Python list 
+(i.e., enclosed in square brackets, with each keyphrase in single quotes, separated 
+by commas), without any numbering or additional text.
+
+Take these three examples as guide:
+{Example-1}
+{Example-2}
+{Example-3}
+
+Document to analyze: 
+{document_text}.
+
+Output format:
+['keyphrase1', 'keyphrase2']

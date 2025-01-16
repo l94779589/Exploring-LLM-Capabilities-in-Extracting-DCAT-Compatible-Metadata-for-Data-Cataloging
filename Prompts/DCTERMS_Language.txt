@@ -1,0 +1,30 @@
+Zero-Shot Prompt:
+
+Identify the primary language of the following document. Consider linguistic features
+and structure to determine the language accurately
+
+Document:
+{document_text}
+
+Output format:
+Return only the identified language in the following format:
+"language" information! Do not add
+comments such as "Here is the abstract"!
+
+-------------------------------------------------------------------
+
+Few-Shot Prompt:
+
+Identify the primary language of the following document. Consider linguistic features 
+and structure to determine the language accurately
+
+Take these two examples as a guide:
+{Example-1}
+{Example-2}
+
+Document:
+{document_text}
+
+Output format:
+Return only the identified language in the following format:
+"language"

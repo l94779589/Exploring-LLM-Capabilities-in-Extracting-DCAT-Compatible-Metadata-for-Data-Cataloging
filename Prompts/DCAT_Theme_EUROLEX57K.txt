@@ -1,0 +1,50 @@
+Zero-Shot Prompt
+
+Analyze the document and select the most relevant EuroVoc IDs that capture its topics
+and themes. Prioritize accuracy and relevance over quantity, choosing only the
+IDs that add distinct value. You may select up to 10 IDs, but use fewer if possible!
+
+Document to analyze:
+{document_text}
+
+Assign the best matching EuroVoc IDs from this list:
+{['IDs']}
+
+You must output only the selected IDs as numbers formatted as a JSON array of
+strings. Do not provide any additional text, explanation, or commentary. Do not
+return any words or letters!
+
+Begin your response with:
+
+[
+
+And end your response before providing any additional information.
+
+------------------------------------------------------
+
+Few-Shot Prompt
+
+Analyze the document and select the most relevant EuroVoc IDs that capture its topics
+and themes. Prioritize accuracy and relevance over quantity, choosing only the
+IDs that add distinct value. You may select up to 10 IDs, but use fewer if possible!
+
+Use the three similar document examples and their annotated EuroVoc IDs as a guide: 
+{Example-1}
+{Example-2}
+{Example-3}
+
+Document to analyze:
+{document_text}
+
+Assign the best matching EuroVoc IDs from this list:
+{['IDs']}
+
+You must output only the selected IDs as numbers formatted as a JSON array of
+strings. Do not provide any additional text, explanation, or commentary. Do not
+return any words or letters!
+
+Begin your response with:
+
+[
+
+And end your response before providing any additional information.

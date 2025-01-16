@@ -1,0 +1,42 @@
+Zero-Shot Prompt:
+
+Analyze the document and classify it using GIZ sector labels. Focus on selecting the 
+fewest, most relevant categories only!
+
+Sector label list:
+
+['Agriculture', 'Buildings', 'Coastal Zone', 'Cross-Cutting Area', 
+ 'Disaster Risk Management (DRM)', 'Economy-wide', 'Education', 
+ 'Energy', 'Environment', 'Health', 'Industries', 'LULUCF/Forestry', 
+ 'Social Development', 'Tourism', 'Transport', 'Urban', 'Waste', 'Water']
+
+Document to analyze: 
+{document_text}.
+
+Response Format:
+Respond only the selected labels as a list: ['label1', 'label2']  
+
+----------------------------------------------------
+
+Few-Shot Prompt:
+
+Analyze the document and classify it using GIZ sector labels. Focus on selecting the 
+fewest, most relevant categories only!
+
+Sector label list:
+
+['Agriculture', 'Buildings', 'Coastal Zone', 'Cross-Cutting Area', 
+ 'Disaster Risk Management (DRM)', 'Economy-wide', 'Education', 
+ 'Energy', 'Environment', 'Health', 'Industries', 'LULUCF/Forestry', 
+ 'Social Development', 'Tourism', 'Transport', 'Urban', 'Waste', 'Water']
+
+Use the three examples as a guide:
+{Example-1}
+{Example-2}
+{Example-3}
+
+Document to analyze: 
+{document_text}.
+
+Response Format:
+Respond only the selected labels as a list: ['label1', 'label2']  

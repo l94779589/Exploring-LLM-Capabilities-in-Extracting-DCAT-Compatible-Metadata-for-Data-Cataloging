@@ -1,0 +1,33 @@
+Zero-Shot Prompt:
+
+Identify and return the name of the country mentioned in the following document text:
+
+Document to analyze: 
+{document_text}
+
+Respond only with the country name, nothing else.  
+
+-------------------------------------------------------------------
+
+Few-Shot Prompt:
+
+Identify and return the name of the country mentioned in the following document text:
+
+Use the two examples and their annotated country as a guide: 
+
+Example 1:
+Input:"Lorem ipsum dolor sit amet, Germany sadipscing elitr, sed diam nonumy eirmod
+tempor invidunt ut Germany et dolore magna aliquyam erat, sed diam voluptua."
+
+Output: "Germany"
+
+Example 2:
+Input:"Lorem ipsum dolor sit amet, Italy sadipscing elitr, sed diam nonumy eirmod 
+tempor invidunt ut Italy et dolore magna aliquyam erat, sed diam voluptua."
+
+Output: "Italy"
+
+Document to analyze: 
+{document_text}
+
+Respond only with the country name, nothing else.  

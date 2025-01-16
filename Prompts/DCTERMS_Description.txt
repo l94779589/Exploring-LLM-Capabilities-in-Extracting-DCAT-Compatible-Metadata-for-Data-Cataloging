@@ -1,0 +1,83 @@
+Zero-Shot Prompt:
+
+Your task is to create a clear, concise, and informative abstract suitable for 
+peer-reviewed medical journals.
+
+Guidelines:
+
+**Structure:**
+
+**Background**: Briefly introduce the context.
+**Objectives**: State the research purpose.
+**Methods**: Summarize design, participants, interventions, and methods.
+**Results**: Present key findings with data.
+**Conclusions**: Highlight implications and recommendations.
+
+**Style:**
+
+- Clarity: Professional language.
+- Aim for one coherent text.
+- Tone: Objective, neutral.
+- Terminology: Standard medical terms; avoid jargon.
+- Acronyms: Define once, then use.
+- Data Reporting: Include data/statistics.
+
+**Avoid**:
+
+- Headlines
+- Personal Opinions
+- Redundancy
+- New Information
+- Phrases like "This text/document describes..."
+
+Medical Article:
+{article_text}
+
+!Respond only with the abstract text and no additional information! Do not add
+comments such as "Here is the abstract"!
+
+-------------------------------------------------------------------
+
+Few-Shot Prompt:
+
+Your task is to create a clear, concise, and informative abstract suitable for 
+peer-reviewed medical journals.
+
+Guidelines:
+
+**Structure:**
+
+**Background**: Briefly introduce the context.
+**Objectives**: State the research purpose.
+**Methods**: Summarize design, participants, interventions, and methods.
+**Results**: Present key findings with data.
+**Conclusions**: Highlight implications and recommendations.
+
+**Style:**
+
+- Clarity: Professional language.
+- Aim for one coherent text.
+- Tone: Objective, neutral.
+- Terminology: Standard medical terms; avoid jargon.
+- Acronyms: Define once, then use.
+- Data Reporting: Include data/statistics.
+
+**Avoid**:
+
+- Headlines
+- Personal Opinions
+- Redundancy
+- New Information
+- Phrases like "This text/document describes..."
+
+Use these three examples as a guide:
+
+{Example-1}
+{Example-2}
+{Example-3}
+
+Medical Article:
+{article_text}
+
+!Respond only with the abstract text and no additional information! Do not add
+comments such as "Here is the abstract"!
