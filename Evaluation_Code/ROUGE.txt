@@ -1,0 +1,31 @@
+!pip install rouge-score
+import pandas as pd
+from rouge_score import rouge_scorer
+
+file_path = '/content/Input.xlsx'  
+output_file_path = '/content/Output.xlsx'
+
+# Load Excel file
+df = pd.read_excel(file_path)
+
+scorer = rouge_scorer.RougeScorer(
+    ['rouge1', 'rouge2', 'rougeL'], 
+    use_stemmer=True
+)
+
+rouge1_scores, rouge2_scores, rougeL_scores = [], [], []
+
+for i, row in df.iterrows():
+    human_text = str(row['Human '])
+    llm_text = str(row['LLM'])
+
+    scores = scorer.score(human_text, llm_text)
+    rouge1_scores.append(scores['rouge1'].fmeasure)
+    rouge2_scores.append(scores['rouge2'].fmeasure)
+    rougeL_scores.append(scores['rougeL'].fmeasure)
+
+df['ROUGE-1'] = rouge1_scores
+df['ROUGE-2'] = rouge2_scores
+df['ROUGE-L'] = rougeL_scores
+
+df.to_excel(output_file_path, index=False)
